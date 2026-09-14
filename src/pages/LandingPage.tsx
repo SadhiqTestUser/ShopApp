@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Truck, ShieldCheck, Clock, Star, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product } from '@/types';
+import { formatINR } from '@/lib/currency';
 
 export default function LandingPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -79,7 +80,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: Truck, title: 'Fast Delivery', desc: 'Free shipping on orders over $50. Delivered in 3-5 business days.' },
+              { icon: Truck, title: 'Fast Delivery', desc: 'Free shipping on orders over ₹500. Delivered in 3-5 business days.' },
               { icon: ShieldCheck, title: 'Quality Guarantee', desc: 'Not happy? We reprint it free. Premium materials, every time.' },
               { icon: Clock, title: 'Quick Turnaround', desc: 'Most orders printed and shipped within 24 hours of approval.' },
               { icon: Sparkles, title: 'Easy Customization', desc: 'Our smart editor makes designing your product effortless.' },
@@ -118,7 +119,7 @@ export default function LandingPage() {
                   <h3 className="mt-3 font-semibold text-slate-900 text-lg">{p.name}</h3>
                   <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.description}</p>
                   <div className="mt-4 flex items-center justify-between">
-                    <span className="text-2xl font-bold text-slate-900">${p.price}</span>
+                    <span className="text-2xl font-bold text-slate-900">{formatINR(p.price)}</span>
                     <Link to={`/products/${p.id}`} className="px-4 py-2 rounded-lg bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-700 font-medium text-sm transition-all">
                       View Details
                     </Link>

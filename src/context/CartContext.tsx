@@ -4,11 +4,18 @@ import type { Product } from '@/types';
 export interface CartItem {
   product: Product;
   quantity: number;
+  customization?: {
+    customization_type: string;
+    page_count: number | null;
+    magnet_shape: string | null;
+    images: string[];
+    unit_price: number;
+  } | null;
 }
 
 interface CartContextValue {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: Product, quantity?: number, customization?: CartItem['customization']) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -21,15 +28,15 @@ const CartContext = createContext<CartContextValue | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
 
-  function addToCart(product: Product, quantity = 1) {
+  function addToCart(product: Product, quantity = 1, customization: CartItem['customization'] = null) {
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+      const existing = prev.find((i) => i.product.id === product.id && !i.customization && !customization);
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + quantity } : i
+          i.product.id === product.id && !i.customization ? { ...i, quantity: i.quantity + quantity } : i
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product, quantity, customization }];
     });
   }
 
@@ -51,7 +58,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems([]);
   }
 
-  const total = items.reduce((sum, i) => sum + Number(i.product.price) * i.quantity, 0);
+  const total = items.reduce((sum, i) => {
+    const unit = i.customization?.unit_price ?? Number(i.product.price);
+    return sum + unit * i.quantity;
+  }, 0);
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
   return (

@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { ShoppingCart, Loader2, ArrowRight } from 'lucide-react';
+import { Loader2, ArrowRight, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product } from '@/types';
-import { useAuth } from '@/context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { formatINR } from '@/lib/currency';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
-  const [ordering, setOrdering] = useState<string | null>(null);
-  const { session } = useAuth();
+  const [searchParams] = useSearchParams();
+  const initialQuery = searchParams.get('q') ?? '';
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,34 +26,20 @@ export default function ProductsPage() {
       });
   }, []);
 
+  useEffect(() => {
+    setSearchQuery(searchParams.get('q') ?? '');
+  }, [searchParams]);
+
   const categories = ['All', ...Array.from(new Set(products.map((p) => p.category)))];
-  const filtered = filter === 'All' ? products : products.filter((p) => p.category === filter);
+  const filtered = products.filter((p) => {
+    const matchesCategory = filter === 'All' || p.category === filter;
+    const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
-  async function handleOrder(product: Product) {
-    if (!session) {
-      navigate('/login');
-      return;
-    }
-    setOrdering(product.id);
-    try {
-      const { data: order } = await supabase
-        .from('orders')
-        .insert({ total: product.price, shipping_address: '' })
-        .select()
-        .single();
-
-      if (order) {
-        await supabase.from('order_items').insert({
-          order_id: order.id,
-          product_id: product.id,
-          quantity: 1,
-          price: product.price,
-        });
-        navigate('/dashboard');
-      }
-    } finally {
-      setOrdering(null);
-    }
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    navigate(searchQuery ? `/products?q=${encodeURIComponent(searchQuery)}` : '/products');
   }
 
   return (
@@ -61,6 +48,18 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold text-white">All Products</h1>
           <p className="mt-3 text-teal-50">Browse our full catalog of customizable print products</p>
+          <form onSubmit={handleSearch} className="mt-6 max-w-md mx-auto">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by product name..."
+                className="w-full pl-12 pr-4 py-3 rounded-xl bg-white text-slate-800 outline-none shadow-lg"
+              />
+            </div>
+          </form>
         </div>
       </div>
 
@@ -85,6 +84,10 @@ export default function ProductsPage() {
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
           </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-slate-500 text-lg">No products found for "{searchQuery}"</p>
+          </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((p) => (
@@ -99,7 +102,7 @@ export default function ProductsPage() {
                   </Link>
                   <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.description}</p>
                   <div className="mt-4 flex items-center justify-between mt-auto">
-                    <span className="text-xl font-bold text-slate-900">${p.price}</span>
+                    <span className="text-xl font-bold text-slate-900">{formatINR(p.price)}</span>
                     <Link
                       to={`/products/${p.id}`}
                       className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm transition-all"

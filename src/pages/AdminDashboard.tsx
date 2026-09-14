@@ -4,6 +4,7 @@ import {
   Clock, Truck, XCircle, Plus, Trash2, Edit3, X,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { formatINR } from '@/lib/currency';
 import type { Product, Order, Profile } from '@/types';
 
 type Tab = 'overview' | 'orders' | 'products' | 'users';
@@ -106,7 +107,7 @@ export default function AdminDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: TrendingUp, label: 'Total Revenue', value: `$${totalRevenue.toFixed(2)}`, color: 'teal' },
+            { icon: TrendingUp, label: 'Total Revenue', value: formatINR(totalRevenue), color: 'teal' },
             { icon: ShoppingBag, label: 'Total Orders', value: orders.length, color: 'blue' },
             { icon: Clock, label: 'Pending Orders', value: pendingOrders, color: 'amber' },
             { icon: Users, label: 'Customers', value: customerCount, color: 'purple' },
@@ -161,7 +162,7 @@ export default function AdminDashboard() {
                           </div>
                           <div className="flex items-center gap-3">
                             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${sc.bg} ${sc.color} capitalize`}>{order.status}</span>
-                            <span className="font-semibold text-slate-900 text-sm">${Number(order.total).toFixed(2)}</span>
+                            <span className="font-semibold text-slate-900 text-sm">{formatINR(Number(order.total))}</span>
                           </div>
                         </div>
                       );
@@ -182,7 +183,7 @@ export default function AdminDashboard() {
                           <p className="font-medium text-slate-900 text-sm truncate">{p.name}</p>
                           <p className="text-xs text-slate-500">{p.category}</p>
                         </div>
-                        <span className="font-semibold text-slate-900 text-sm">${p.price}</span>
+                        <span className="font-semibold text-slate-900 text-sm">{formatINR(p.price)}</span>
                       </div>
                     ))}
                   </div>
@@ -216,7 +217,7 @@ export default function AdminDashboard() {
                               <td className="py-3 px-4 text-sm font-medium text-slate-900">#{order.id.slice(0, 8)}</td>
                               <td className="py-3 px-4 text-sm text-slate-500">{new Date(order.created_at).toLocaleDateString()}</td>
                               <td className="py-3 px-4 text-sm text-slate-500">{order.order_items?.length ?? 0}</td>
-                              <td className="py-3 px-4 text-sm font-semibold text-slate-900">${Number(order.total).toFixed(2)}</td>
+                              <td className="py-3 px-4 text-sm font-semibold text-slate-900">{formatINR(Number(order.total))}</td>
                               <td className="py-3 px-4">
                                 <select
                                   value={order.status}
@@ -273,7 +274,7 @@ export default function AdminDashboard() {
                             </div>
                           </td>
                           <td className="py-3 px-4 text-sm text-slate-500">{p.category}</td>
-                          <td className="py-3 px-4 text-sm font-semibold text-slate-900">${p.price}</td>
+                          <td className="py-3 px-4 text-sm font-semibold text-slate-900">{formatINR(p.price)}</td>
                           <td className="py-3 px-4">
                             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${p.active ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
                               {p.active ? 'Active' : 'Hidden'}
@@ -358,7 +359,7 @@ export default function AdminDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Price ($)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Price (₹)</label>
                   <input required type="number" step="0.01" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all" />
                 </div>

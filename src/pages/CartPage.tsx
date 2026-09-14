@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Minus, Plus, ShoppingBag, Loader2, ArrowLeft } from 'lucide-react';
+import { Trash2, Minus, Plus, ShoppingBag, Loader2, ArrowLeft, ImageIcon, Lock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { formatINR } from '@/lib/currency';
 
 export default function CartPage() {
   const { items, removeFromCart, updateQuantity, clearCart, total } = useCart();
@@ -34,7 +35,8 @@ export default function CartPage() {
         order_id: order.id,
         product_id: item.product.id,
         quantity: item.quantity,
-        price: item.product.price,
+        price: item.customization?.unit_price ?? item.product.price,
+        customization_data: item.customization ?? null,
       }));
 
       await supabase.from('order_items').insert(orderItems);
@@ -74,44 +76,62 @@ export default function CartPage() {
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
-            {items.map((item) => (
-              <div key={item.product.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex gap-4">
-                <div className="w-24 h-24 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
-                  <img src={item.product.image_url ?? ''} alt={item.product.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 flex flex-col justify-between">
-                  <div>
-                    <Link to={`/products/${item.product.id}`} className="font-semibold text-slate-900 hover:text-teal-600 transition-colors">
-                      {item.product.name}
-                    </Link>
-                    <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded mt-1 inline-block">{item.product.category}</span>
+            {items.map((item) => {
+              const unitPrice = item.customization?.unit_price ?? Number(item.product.price);
+              return (
+                <div key={item.product.id + (item.customization ? '-custom' : '')} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex gap-4">
+                  <div className="w-24 h-24 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
+                    <img src={item.product.image_url ?? ''} alt={item.product.name} className="w-full h-full object-cover" />
                   </div>
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                        className="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-100 flex items-center justify-center transition-colors"
-                      >
-                        <Minus className="w-3.5 h-3.5 text-slate-600" />
-                      </button>
-                      <span className="w-10 text-center font-semibold text-slate-900 text-sm">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        className="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-100 flex items-center justify-center transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5 text-slate-600" />
-                      </button>
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <Link to={`/products/${item.product.id}`} className="font-semibold text-slate-900 hover:text-teal-600 transition-colors">
+                        {item.product.name}
+                      </Link>
+                      <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded mt-1 inline-block">{item.product.category}</span>
+                      {item.customization && (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {item.customization.page_count && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{item.customization.page_count} pages</span>
+                          )}
+                          {item.customization.magnet_shape && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded capitalize">{item.customization.magnet_shape} shape</span>
+                          )}
+                          {item.customization.images.length > 0 && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded flex items-center gap-1">
+                              <ImageIcon className="w-3 h-3" /> {item.customization.images.length} photo(s)
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-bold text-slate-900">${(Number(item.product.price) * item.quantity).toFixed(2)}</span>
-                      <button onClick={() => removeFromCart(item.product.id)} className="p-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          className="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                        >
+                          <Minus className="w-3.5 h-3.5 text-slate-600" />
+                        </button>
+                        <span className="w-10 text-center font-semibold text-slate-900 text-sm">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          className="w-8 h-8 rounded-lg border border-slate-200 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5 text-slate-600" />
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="font-bold text-slate-900">{formatINR(unitPrice * item.quantity)}</span>
+                        <button onClick={() => removeFromCart(item.product.id)} className="p-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Summary */}
@@ -120,7 +140,7 @@ export default function CartPage() {
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-slate-500">
                 <span>Items ({items.reduce((s, i) => s + i.quantity, 0)})</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatINR(total)}</span>
               </div>
               <div className="flex justify-between text-slate-500">
                 <span>Shipping</span>
@@ -128,7 +148,7 @@ export default function CartPage() {
               </div>
               <div className="border-t border-slate-100 pt-3 mt-3 flex justify-between font-bold text-slate-900 text-lg">
                 <span>Total</span>
-                <span>${total.toFixed(2)}</span>
+                <span>{formatINR(total)}</span>
               </div>
             </div>
             <button
@@ -136,13 +156,16 @@ export default function CartPage() {
               disabled={checkingOut}
               className="w-full mt-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Checkout'}
+              {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Checkout <Lock className="w-4 h-4" /></>}
             </button>
             {!session && (
               <p className="mt-3 text-center text-xs text-slate-500">
                 You'll need to sign in to complete checkout.
               </p>
             )}
+            <p className="mt-3 text-center text-xs text-slate-400">
+              Secure payment via Stripe (setup required)
+            </p>
           </div>
         </div>
       </div>

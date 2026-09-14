@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Package, User, ShoppingBag, Clock, CheckCircle, Truck, XCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
+import { formatINR } from '@/lib/currency';
 import type { Order, Profile } from '@/types';
 
 type Tab = 'overview' | 'orders' | 'profile';
@@ -72,7 +73,7 @@ export default function UserDashboard() {
           {[
             { icon: ShoppingBag, label: 'Total Orders', value: orders.length, color: 'teal' },
             { icon: Clock, label: 'In Progress', value: pendingCount, color: 'amber' },
-            { icon: Package, label: 'Total Spent', value: `$${totalSpent.toFixed(2)}`, color: 'blue' },
+            { icon: Package, label: 'Total Spent', value: formatINR(totalSpent), color: 'blue' },
           ].map((s, i) => (
             <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
               <div className={`w-12 h-12 rounded-xl bg-${s.color}-100 flex items-center justify-center`}>
@@ -136,7 +137,7 @@ export default function UserDashboard() {
                       </div>
                       <div className="flex items-center gap-4">
                         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${sc.bg} ${sc.color} capitalize`}>{order.status}</span>
-                        <span className="font-semibold text-slate-900">${Number(order.total).toFixed(2)}</span>
+                        <span className="font-semibold text-slate-900">{formatINR(Number(order.total))}</span>
                       </div>
                     </div>
                   );
@@ -180,7 +181,7 @@ export default function UserDashboard() {
                           <td className="py-3 px-4">
                             <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${sc.bg} ${sc.color} capitalize`}>{order.status}</span>
                           </td>
-                          <td className="py-3 px-4 text-right font-semibold text-slate-900">${Number(order.total).toFixed(2)}</td>
+                          <td className="py-3 px-4 text-right font-semibold text-slate-900">{formatINR(Number(order.total))}</td>
                         </tr>
                       );
                     })}
