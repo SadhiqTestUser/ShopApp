@@ -119,41 +119,21 @@ export default function ProductDetailPage() {
     setTimeout(() => setAdded(false), 2000);
   }
 
-  async function handleBuyNow() {
+  function handleBuyNow() {
     if (!product) return;
     if (!session) {
       navigate('/login');
       return;
     }
     if (needsCustomization && !customizationValid) return;
-    setOrdering(true);
-    try {
-      const customizationData = needsCustomization
-        ? { customization_type: customType, page_count: pageCount, magnet_shape: magnetShape, images: images.map((i) => i.url) }
-        : null;
-
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({ total: totalPrice, shipping_address: '' })
-        .select()
-        .single();
-
-      if (error || !order) {
-        setOrdering(false);
-        return;
-      }
-
-      await supabase.from('order_items').insert({
-        order_id: order.id,
-        product_id: product.id,
-        quantity,
-        price: unitPrice,
-        customization_data: customizationData,
-      });
-      navigate('/dashboard');
-    } finally {
-      setOrdering(false);
-    }
+    addToCart(product, quantity, needsCustomization ? {
+      customization_type: customType,
+      page_count: pageCount,
+      magnet_shape: magnetShape,
+      images: images.map((i) => i.url),
+      unit_price: unitPrice,
+    } : null);
+    navigate('/checkout');
   }
 
   if (loading) {

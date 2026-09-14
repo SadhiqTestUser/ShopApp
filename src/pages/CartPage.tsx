@@ -1,50 +1,21 @@
-import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Minus, Plus, ShoppingBag, Loader2, ArrowLeft, ImageIcon, Lock } from 'lucide-react';
+import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, ImageIcon, Lock } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { formatINR } from '@/lib/currency';
 
 export default function CartPage() {
-  const { items, removeFromCart, updateQuantity, clearCart, total } = useCart();
+  const { items, removeFromCart, updateQuantity, total } = useCart();
   const { session } = useAuth();
   const navigate = useNavigate();
-  const [checkingOut, setCheckingOut] = useState(false);
 
-  async function handleCheckout() {
+
+  function handleCheckout() {
     if (!session) {
       navigate('/login');
       return;
     }
-    if (items.length === 0) return;
-    setCheckingOut(true);
-    try {
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({ total, shipping_address: '' })
-        .select()
-        .single();
-
-      if (error || !order) {
-        setCheckingOut(false);
-        return;
-      }
-
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        price: item.customization?.unit_price ?? item.product.price,
-        customization_data: item.customization ?? null,
-      }));
-
-      await supabase.from('order_items').insert(orderItems);
-      clearCart();
-      navigate('/dashboard');
-    } finally {
-      setCheckingOut(false);
-    }
+    navigate('/checkout');
   }
 
   if (items.length === 0) {
@@ -153,10 +124,10 @@ export default function CartPage() {
             </div>
             <button
               onClick={handleCheckout}
-              disabled={checkingOut}
+              disabled={false}
               className="w-full mt-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {checkingOut ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Checkout <Lock className="w-4 h-4" /></>}
+              <>Checkout <Lock className="w-4 h-4" /></>
             </button>
             {!session && (
               <p className="mt-3 text-center text-xs text-slate-500">
@@ -164,7 +135,7 @@ export default function CartPage() {
               </p>
             )}
             <p className="mt-3 text-center text-xs text-slate-400">
-              Secure payment via Stripe (setup required)
+              Secure payment via Razorpay (UPI, Cards, Net Banking)
             </p>
           </div>
         </div>
