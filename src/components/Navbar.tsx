@@ -1,16 +1,47 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Printer, Menu, X, LayoutDashboard, LogOut, User, ShoppingCart, Search } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
+import { supabase } from '@/lib/supabase';
+import { formatINR } from '@/lib/currency';
+import type { Product } from '@/types';
 
 export default function Navbar() {
   const { profile, signOut } = useAuth();
   const { itemCount } = useCart();
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [highlightIndex, setHighlightIndex] = useState(-1);
   const navigate = useNavigate();
   const isAdmin = profile?.role === 'admin';
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase
+      .from('products')
+      .select('*')
+      .eq('active', true)
+      .then(({ data }) => setProducts(data ?? []));
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const suggestions: Product[] = searchQuery.trim()
+    ? products
+        .filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+        .slice(0, 6)
+    : [];
 
   async function handleSignOut() {
     await signOut();
@@ -22,9 +53,90 @@ export default function Navbar() {
     if (searchQuery.trim()) {
       navigate(`/products?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
+      setShowSuggestions(false);
       setOpen(false);
     }
   }
+
+  function handleSuggestionClick(product: Product) {
+    navigate(`/products/${product.id}`);
+    setSearchQuery('');
+    setShowSuggestions(false);
+    setOpen(false);
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!showSuggestions || suggestions.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightIndex((prev) => (prev + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightIndex((prev) => (prev - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === 'Enter' && highlightIndex >= 0) {
+      e.preventDefault();
+      handleSuggestionClick(suggestions[highlightIndex]);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+      setHighlightIndex(-1);
+    }
+  }
+
+  const desktopSearch = (
+    <div className="relative w-full" ref={searchRef}>
+      <form onSubmit={handleSearch}>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setShowSuggestions(true);
+            setHighlightIndex(-1);
+          }}
+          onFocus={() => setShowSuggestions(true)}
+          onKeyDown={handleKeyDown}
+          placeholder="Search products..."
+          className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-100 focus:bg-white border border-transparent focus:border-teal-300 focus:ring-2 focus:ring-teal-100 outline-none text-sm transition-all"
+          autoComplete="off"
+        />
+      </form>
+
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50">
+          {suggestions.map((product, idx) => (
+            <button
+              key={product.id}
+              type="button"
+              onClick={() => handleSuggestionClick(product)}
+              onMouseEnter={() => setHighlightIndex(idx)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                idx === highlightIndex ? 'bg-teal-50' : 'hover:bg-slate-50'
+              }`}
+            >
+              <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                <img src={product.image_url ?? ''} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-slate-900 truncate">{product.name}</p>
+                <p className="text-xs text-slate-500">{product.category}</p>
+              </div>
+              <span className="text-sm font-semibold text-teal-600 flex-shrink-0">{formatINR(product.price)}</span>
+            </button>
+          ))}
+          {searchQuery.trim() && (
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="w-full px-3 py-2.5 text-center text-sm text-teal-600 font-medium border-t border-slate-100 hover:bg-teal-50 transition-colors"
+            >
+              See all results for "{searchQuery.trim()}"
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
@@ -38,18 +150,9 @@ export default function Navbar() {
           </Link>
 
           {/* Search bar */}
-          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-md mx-6">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-100 focus:bg-white border border-transparent focus:border-teal-300 focus:ring-2 focus:ring-teal-100 outline-none text-sm transition-all"
-              />
-            </div>
-          </form>
+          <div className="hidden md:flex flex-1 max-w-md mx-6">
+            {desktopSearch}
+          </div>
 
           <div className="hidden md:flex items-center gap-6">
             <Link to="/" className="text-slate-600 hover:text-teal-600 transition-colors font-medium">Home</Link>
@@ -108,18 +211,52 @@ export default function Navbar() {
 
         {open && (
           <div className="md:hidden border-t border-slate-200 py-4 space-y-3">
-            <form onSubmit={handleSearch} className="px-3">
+            <div className="px-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-100 border border-transparent focus:border-teal-300 outline-none text-sm"
-                />
+                <form onSubmit={handleSearch}>
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSuggestions(true);
+                      setHighlightIndex(-1);
+                    }}
+                    onFocus={() => setShowSuggestions(true)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Search products..."
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-slate-100 border border-transparent focus:border-teal-300 outline-none text-sm"
+                    autoComplete="off"
+                  />
+                </form>
+
+                {showSuggestions && suggestions.length > 0 && (
+                  <div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden z-50">
+                    {suggestions.map((product, idx) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        onClick={() => handleSuggestionClick(product)}
+                        onMouseEnter={() => setHighlightIndex(idx)}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
+                          idx === highlightIndex ? 'bg-teal-50' : 'hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                          <img src={product.image_url ?? ''} alt={product.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 truncate">{product.name}</p>
+                          <p className="text-xs text-slate-500">{product.category}</p>
+                        </div>
+                        <span className="text-sm font-semibold text-teal-600 flex-shrink-0">{formatINR(product.price)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            </form>
+            </div>
             <Link to="/" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>Home</Link>
             <Link to="/products" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>Products</Link>
             <Link to="/cart" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>Cart ({itemCount})</Link>
