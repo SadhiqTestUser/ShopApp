@@ -119,8 +119,8 @@ export default function LandingPage() {
                   <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.description}</p>
                   <div className="mt-4 flex items-center justify-between">
                     <span className="text-2xl font-bold text-slate-900">${p.price}</span>
-                    <Link to="/products" className="px-4 py-2 rounded-lg bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-700 font-medium text-sm transition-all">
-                      Customize
+                    <Link to={`/products/${p.id}`} className="px-4 py-2 rounded-lg bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-700 font-medium text-sm transition-all">
+                      View Details
                     </Link>
                   </div>
                 </div>

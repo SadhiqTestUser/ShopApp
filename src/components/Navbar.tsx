@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Printer, Menu, X, LayoutDashboard, LogOut, User } from 'lucide-react';
+import { Printer, Menu, X, LayoutDashboard, LogOut, User, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 
 export default function Navbar() {
   const { profile, signOut } = useAuth();
+  const { itemCount } = useCart();
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const isAdmin = profile?.role === 'admin';
@@ -34,9 +36,21 @@ export default function Navbar() {
             {isAdmin && (
               <Link to="/admin" className="text-slate-600 hover:text-teal-600 transition-colors font-medium">Admin</Link>
             )}
+            <Link to="/cart" className="relative text-slate-600 hover:text-teal-600 transition-colors">
+              <ShoppingCart className="w-5 h-5" />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center">{itemCount}</span>
+              )}
+            </Link>
           </div>
 
           <div className="hidden md:flex items-center gap-4">
+            <Link to="/cart" className="relative text-slate-600 hover:text-teal-600 transition-colors md:hidden">
+              <ShoppingCart className="w-5 h-5" />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center">{itemCount}</span>
+              )}
+            </Link>
             {profile ? (
               <div className="flex items-center gap-3">
                 <Link
@@ -81,6 +95,7 @@ export default function Navbar() {
           <div className="md:hidden border-t border-slate-200 py-4 space-y-3">
             <Link to="/" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>Home</Link>
             <Link to="/products" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>Products</Link>
+            <Link to="/cart" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>Cart ({itemCount})</Link>
             {profile && (
               <Link to="/dashboard" className="block px-3 py-2 rounded-lg hover:bg-slate-100 font-medium" onClick={() => setOpen(false)}>My Dashboard</Link>
             )}

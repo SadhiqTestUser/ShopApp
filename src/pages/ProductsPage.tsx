@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ShoppingCart, Loader2 } from 'lucide-react';
+import { ShoppingCart, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Product } from '@/types';
 import { useAuth } from '@/context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -88,24 +88,24 @@ export default function ProductsPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filtered.map((p) => (
-              <div key={p.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100">
-                <div className="aspect-square overflow-hidden bg-slate-100">
+              <div key={p.id} className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 flex flex-col">
+                <Link to={`/products/${p.id}`} className="aspect-square overflow-hidden bg-slate-100 block">
                   <img src={p.image_url ?? ''} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                </div>
-                <div className="p-4">
-                  <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">{p.category}</span>
-                  <h3 className="mt-2 font-semibold text-slate-900">{p.name}</h3>
+                </Link>
+                <div className="p-4 flex flex-col flex-1">
+                  <Link to={`/products/${p.id}`}>
+                    <span className="text-xs font-medium text-teal-600 bg-teal-50 px-2 py-1 rounded">{p.category}</span>
+                    <h3 className="mt-2 font-semibold text-slate-900 hover:text-teal-600 transition-colors">{p.name}</h3>
+                  </Link>
                   <p className="mt-1 text-sm text-slate-500 line-clamp-2">{p.description}</p>
-                  <div className="mt-4 flex items-center justify-between">
+                  <div className="mt-4 flex items-center justify-between mt-auto">
                     <span className="text-xl font-bold text-slate-900">${p.price}</span>
-                    <button
-                      onClick={() => handleOrder(p)}
-                      disabled={ordering === p.id}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm transition-all disabled:opacity-50"
+                    <Link
+                      to={`/products/${p.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm transition-all"
                     >
-                      {ordering === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
-                      Order
-                    </button>
+                      View Details <ArrowRight className="w-3.5 h-3.5" />
+                    </Link>
                   </div>
                 </div>
               </div>
