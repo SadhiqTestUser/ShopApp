@@ -59,7 +59,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       phone,
       options: { shouldCreateUser: false },
     });
-    return { error: error?.message ?? null };
+
+    if (!error) return { error: null };
+    if (error.code === 'otp_disabled' || error.message.toLowerCase().includes('signups not allowed for otp')) {
+      return { error: 'No account was found for this phone number. Please create an account first.' };
+    }
+    if (error.code === 'phone_provider_disabled' || error.message.toLowerCase().includes('unsupported phone provider')) {
+      return { error: 'Phone OTP is not enabled yet. Please ask the administrator to enable SMS login.' };
+    }
+    return { error: error.message };
   }
 
   async function verifyOtp(phone: string, token: string) {
@@ -68,7 +76,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       type: 'sms',
     });
-    return { error: error?.message ?? null };
+
+    if (!error) return { error: null };
+    if (error.code === 'otp_expired' || error.message.toLowerCase().includes('expired')) {
+      return { error: 'The OTP has expired. Please request a new one.' };
+    }
+    if (error.code === 'invalid_otp' || error.message.toLowerCase().includes('invalid')) {
+      return { error: 'Incorrect OTP. Please check and try again.' };
+    }
+    return { error: error.message };
   }
 
   async function signUpWithPhone(phone: string, fullName: string) {
@@ -79,7 +95,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: { full_name: fullName },
       },
     });
-    return { error: error?.message ?? null };
+
+    if (!error) return { error: null };
+    if (error.code === 'phone_provider_disabled' || error.message.toLowerCase().includes('unsupported phone provider')) {
+      return { error: 'Phone OTP is not enabled yet. Please ask the administrator to enable SMS login.' };
+    }
+    if (error.code === 'user_already_exists' || error.message.toLowerCase().includes('already registered')) {
+      return { error: 'This phone number is already registered. Please sign in instead.' };
+    }
+    return { error: error.message };
   }
 
   async function signOut() {
