@@ -63,7 +63,7 @@ export default function UserDashboard() {
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-bold text-white">My Dashboard</h1>
-          <p className="text-slate-400 mt-1">Welcome back, {profile?.full_name || profile?.email}</p>
+          <p className="text-slate-400 mt-1">Welcome back, {profile?.full_name || profile?.phone}</p>
         </div>
       </div>
 
@@ -212,22 +212,12 @@ export default function UserDashboard() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-                <input
-                  type="email"
-                  value={profile?.email ?? ''}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500"
-                />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">Phone</label>
                 <input
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 outline-none transition-all"
-                  placeholder="Enter your phone number"
+                  disabled
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-500"
                 />
               </div>
               <button

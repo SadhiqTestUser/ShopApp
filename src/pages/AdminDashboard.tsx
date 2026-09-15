@@ -307,7 +307,6 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="border-b border-slate-200">
                         <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Name</th>
-                        <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Email</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Phone</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Role</th>
                         <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Joined</th>
@@ -317,7 +316,6 @@ export default function AdminDashboard() {
                       {users.map((u) => (
                         <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50">
                           <td className="py-3 px-4 text-sm font-medium text-slate-900">{u.full_name || '—'}</td>
-                          <td className="py-3 px-4 text-sm text-slate-500">{u.email}</td>
                           <td className="py-3 px-4 text-sm text-slate-500">{u.phone || '—'}</td>
                           <td className="py-3 px-4">
                             <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize ${u.role === 'admin' ? 'bg-purple-50 text-purple-600' : 'bg-teal-50 text-teal-600'}`}>

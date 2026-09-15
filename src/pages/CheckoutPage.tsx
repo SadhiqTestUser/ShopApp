@@ -142,7 +142,7 @@ export default function CheckoutPage() {
         order_id: result.razorpay_order_id,
         prefill: {
           name: form.name,
-          email: session.user.email ?? '',
+          email: '',
           contact: form.phone,
         },
         theme: { color: '#0d9488' },
