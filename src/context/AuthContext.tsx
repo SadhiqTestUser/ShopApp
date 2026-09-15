@@ -3,13 +3,21 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import type { Profile } from '@/types';
 
+interface SendOtpResult {
+  error: string | null;
+  devCode?: string;
+}
+
+interface VerifyOtpResult {
+  error: string | null;
+}
+
 interface AuthContextValue {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  sendOtp: (phone: string) => Promise<{ error: string | null }>;
-  verifyOtp: (phone: string, token: string) => Promise<{ error: string | null }>;
-  signUpWithPhone: (phone: string, fullName: string) => Promise<{ error: string | null }>;
+  sendOtp: (phone: string, purpose: 'login' | 'signup', fullName?: string) => Promise<SendOtpResult>;
+  verifyOtp: (phone: string, code: string) => Promise<VerifyOtpResult>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -54,56 +62,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => listener.subscription.unsubscribe();
   }, []);
 
-  async function sendOtp(phone: string) {
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-      options: { shouldCreateUser: false },
-    });
+  async function sendOtp(phone: string, purpose: 'login' | 'signup', fullName?: string) {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+      const url = `${supabaseUrl}/functions/v1/send-otp`;
 
-    if (!error) return { error: null };
-    if (error.code === 'otp_disabled' || error.message.toLowerCase().includes('signups not allowed for otp')) {
-      return { error: 'No account was found for this phone number. Please create an account first.' };
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({ phone, purpose, full_name: fullName }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        return { error: data.error ?? 'Failed to send OTP' };
+      }
+
+      return { error: null, devCode: data.dev_code as string | undefined };
+    } catch {
+      return { error: 'Network error. Please check your connection.' };
     }
-    if (error.code === 'phone_provider_disabled' || error.message.toLowerCase().includes('unsupported phone provider')) {
-      return { error: 'Phone OTP is not enabled yet. Please ask the administrator to enable SMS login.' };
-    }
-    return { error: error.message };
   }
 
-  async function verifyOtp(phone: string, token: string) {
-    const { error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
-    });
+  async function verifyOtp(phone: string, code: string) {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+      const url = `${supabaseUrl}/functions/v1/verify-otp`;
 
-    if (!error) return { error: null };
-    if (error.code === 'otp_expired' || error.message.toLowerCase().includes('expired')) {
-      return { error: 'The OTP has expired. Please request a new one.' };
-    }
-    if (error.code === 'invalid_otp' || error.message.toLowerCase().includes('invalid')) {
-      return { error: 'Incorrect OTP. Please check and try again.' };
-    }
-    return { error: error.message };
-  }
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
+        },
+        body: JSON.stringify({ phone, code }),
+      });
 
-  async function signUpWithPhone(phone: string, fullName: string) {
-    const { error } = await supabase.auth.signInWithOtp({
-      phone,
-      options: {
-        shouldCreateUser: true,
-        data: { full_name: fullName },
-      },
-    });
+      const data = await response.json();
 
-    if (!error) return { error: null };
-    if (error.code === 'phone_provider_disabled' || error.message.toLowerCase().includes('unsupported phone provider')) {
-      return { error: 'Phone OTP is not enabled yet. Please ask the administrator to enable SMS login.' };
+      if (!response.ok) {
+        return { error: data.error ?? 'Verification failed' };
+      }
+
+      // Set the session from the tokens returned by the edge function
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
+      });
+
+      if (sessionError) {
+        return { error: 'Failed to establish session' };
+      }
+
+      return { error: null };
+    } catch {
+      return { error: 'Network error. Please check your connection.' };
     }
-    if (error.code === 'user_already_exists' || error.message.toLowerCase().includes('already registered')) {
-      return { error: 'This phone number is already registered. Please sign in instead.' };
-    }
-    return { error: error.message };
   }
 
   async function signOut() {
@@ -118,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ session, profile, loading, sendOtp, verifyOtp, signUpWithPhone, signOut, refreshProfile }}
+      value={{ session, profile, loading, sendOtp, verifyOtp, signOut, refreshProfile }}
     >
       {children}
     </AuthContext.Provider>

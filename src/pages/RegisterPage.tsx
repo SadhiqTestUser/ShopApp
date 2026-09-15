@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Printer, Phone, User, Loader2, AlertCircle, KeyRound, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Printer, Phone, User, Loader2, AlertCircle, KeyRound, ArrowLeft, CheckCircle, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function RegisterPage() {
-  const { signUpWithPhone, verifyOtp } = useAuth();
+  const { sendOtp, verifyOtp } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -14,6 +14,7 @@ export default function RegisterPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [success, setSuccess] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [devCode, setDevCode] = useState<string | null>(null);
 
   function formatPhone(input: string): string {
     const digits = input.replace(/\D/g, '');
@@ -37,6 +38,7 @@ export default function RegisterPage() {
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setDevCode(null);
     if (!fullName.trim()) {
       setError('Please enter your full name');
       return;
@@ -47,13 +49,14 @@ export default function RegisterPage() {
     }
     setLoading(true);
     const fullPhone = `+91${phone}`;
-    const { error } = await signUpWithPhone(fullPhone, fullName.trim());
+    const { error, devCode } = await sendOtp(fullPhone, 'signup', fullName.trim());
     setLoading(false);
     if (error) {
       setError(error);
     } else {
       setOtpSent(true);
       startResendTimer();
+      if (devCode) setDevCode(devCode);
     }
   }
 
@@ -78,14 +81,16 @@ export default function RegisterPage() {
 
   async function handleResend() {
     setError(null);
+    setDevCode(null);
     setLoading(true);
     const fullPhone = `+91${phone}`;
-    const { error } = await signUpWithPhone(fullPhone, fullName.trim());
+    const { error, devCode } = await sendOtp(fullPhone, 'signup', fullName.trim());
     setLoading(false);
     if (error) {
       setError(error);
     } else {
       startResendTimer();
+      if (devCode) setDevCode(devCode);
     }
   }
 
@@ -111,6 +116,16 @@ export default function RegisterPage() {
               {error}
             </div>
           )}
+
+          {devCode && (
+            <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
+              <Info className="w-4 h-4 flex-shrink-0" />
+              <span>
+                <strong>Dev mode:</strong> Your OTP is <span className="font-mono font-bold tracking-wider">{devCode}</span>
+              </span>
+            </div>
+          )}
+
           {success && (
             <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg bg-green-50 text-green-700 text-sm">
               <CheckCircle className="w-4 h-4 flex-shrink-0" />
@@ -198,6 +213,7 @@ export default function RegisterPage() {
                     setOtpSent(false);
                     setOtp('');
                     setError(null);
+                    setDevCode(null);
                   }}
                   className="flex items-center gap-1 text-slate-500 hover:text-teal-600 font-medium transition-colors"
                 >

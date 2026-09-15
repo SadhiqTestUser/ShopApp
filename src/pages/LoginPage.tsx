@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Printer, Phone, Loader2, AlertCircle, KeyRound, ArrowLeft } from 'lucide-react';
+import { Printer, Phone, Loader2, AlertCircle, KeyRound, ArrowLeft, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function LoginPage() {
@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [devCode, setDevCode] = useState<string | null>(null);
 
   function formatPhone(input: string): string {
     const digits = input.replace(/\D/g, '');
@@ -35,19 +36,21 @@ export default function LoginPage() {
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setDevCode(null);
     if (phone.length !== 10) {
       setError('Please enter a valid 10-digit phone number');
       return;
     }
     setLoading(true);
     const fullPhone = `+91${phone}`;
-    const { error } = await sendOtp(fullPhone);
+    const { error, devCode } = await sendOtp(fullPhone, 'login');
     setLoading(false);
     if (error) {
       setError(error);
     } else {
       setOtpSent(true);
       startResendTimer();
+      if (devCode) setDevCode(devCode);
     }
   }
 
@@ -71,14 +74,16 @@ export default function LoginPage() {
 
   async function handleResend() {
     setError(null);
+    setDevCode(null);
     setLoading(true);
     const fullPhone = `+91${phone}`;
-    const { error } = await sendOtp(fullPhone);
+    const { error, devCode } = await sendOtp(fullPhone, 'login');
     setLoading(false);
     if (error) {
       setError(error);
     } else {
       startResendTimer();
+      if (devCode) setDevCode(devCode);
     }
   }
 
@@ -86,6 +91,7 @@ export default function LoginPage() {
     setOtp('');
     setOtpSent(false);
     setError(null);
+    setDevCode(null);
   }
 
   return (
@@ -108,6 +114,15 @@ export default function LoginPage() {
             <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {error}
+            </div>
+          )}
+
+          {devCode && (
+            <div className="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
+              <Info className="w-4 h-4 flex-shrink-0" />
+              <span>
+                <strong>Dev mode:</strong> Your OTP is <span className="font-mono font-bold tracking-wider">{devCode}</span>
+              </span>
             </div>
           )}
 
@@ -179,6 +194,7 @@ export default function LoginPage() {
                     setOtpSent(false);
                     setOtp('');
                     setError(null);
+                    setDevCode(null);
                   }}
                   className="flex items-center gap-1 text-slate-500 hover:text-teal-600 font-medium transition-colors"
                 >
