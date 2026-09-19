@@ -17,6 +17,9 @@ export interface CartItem {
     frame_size?: string | null;
     number_of_people?: number | null;
     soft_copy?: boolean;
+    keychain_material?: string | null;
+    keychain_shape?: string | null;
+    print_type?: string | null;
   } | null;
 }
 

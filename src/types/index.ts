@@ -17,6 +17,7 @@ export type CustomizationType =
   | 'wooden_stand'
   | 'hanging_stand'
   | 'photo_frame'
+  | 'keychain'
   | 'standard';
 
 export interface FrameSizeOption {

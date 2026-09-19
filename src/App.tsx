@@ -18,6 +18,8 @@ import UserDashboard from '@/pages/UserDashboard';
 import AdminDashboard from '@/pages/AdminDashboard';
 import AdminOrderDetailPage from '@/pages/AdminOrderDetailPage';
 import SignOutPage from '@/pages/SignOutPage';
+import KeychainCollectionPage from '@/pages/KeychainCollectionPage';
+import KeychainDetailPage from '@/pages/KeychainDetailPage';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -39,6 +41,8 @@ function AnimatedRoutes() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route path="/keychains" element={<KeychainCollectionPage />} />
+          <Route path="/keychains/:id" element={<KeychainDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route
             path="/checkout"

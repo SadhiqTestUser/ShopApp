@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, ArrowRight, Search } from 'lucide-react';
+import { Loader2, ArrowRight, Search, Key } from 'lucide-react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Product } from '@/types';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { formatINR, getOfferInfo } from '@/lib/currency';
 import { fadeInUp, staggerContainer, hoverLift, tapScale, revealViewport } from '@/lib/motion';
+import { KEYCHAIN_CATEGORY_IMAGE } from '@/lib/keychains';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -38,6 +39,8 @@ export default function ProductsPage() {
   }, [searchParams]);
 
   const categories = ['All', ...Array.from(new Set(products.map((p) => p.category)))];
+  const showKeychainCard = filter === 'All' || filter === 'Accessories';
+  const keychainMatchesSearch = !searchQuery || 'keychain'.includes(searchQuery.toLowerCase());
   const filtered = products.filter((p) => {
     const matchesCategory = filter === 'All' || p.category === filter;
     const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -109,6 +112,31 @@ export default function ProductsPage() {
             whileInView="show"
             viewport={revealViewport}
           >
+            {showKeychainCard && keychainMatchesSearch && (
+              <motion.div key="keychain-category" variants={fadeInUp} whileHover={hoverLift} whileTap={tapScale}>
+                <Link
+                  to="/keychains"
+                  className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-teal-100 flex flex-col h-full"
+                >
+                  <div className="relative aspect-square overflow-hidden bg-slate-100">
+                    <img src={KEYCHAIN_CATEGORY_IMAGE} alt="Custom Keychains" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <span className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 inline-flex items-center gap-1 text-[9px] sm:text-xs font-semibold px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-teal-600 text-white shadow-sm">
+                      <Key className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> New
+                    </span>
+                  </div>
+                  <div className="p-2 sm:p-4 flex flex-col flex-1">
+                    <span className="text-[10px] sm:text-xs font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded w-fit">Accessories</span>
+                    <h3 className="mt-1 sm:mt-2 text-xs sm:text-base font-semibold text-slate-900 line-clamp-1 sm:line-clamp-none group-hover:text-teal-600 transition-colors">Custom Keychains</h3>
+                    <div className="mt-2 sm:mt-4 flex items-center justify-between mt-auto">
+                      <span className="text-sm sm:text-xl font-bold text-slate-900">From {formatINR(149)}</span>
+                      <span className="hidden sm:inline-flex items-center gap-1.5 text-teal-600 group-hover:text-teal-700 font-medium text-sm transition-all">
+                        Explore <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            )}
             {filtered.map((p) => (
               <motion.div key={p.id} variants={fadeInUp} whileHover={hoverLift} whileTap={tapScale}>
               <Link

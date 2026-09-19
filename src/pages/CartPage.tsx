@@ -83,6 +83,15 @@ export default function CartPage() {
                           {item.customization.soft_copy && (
                             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">Soft copy</span>
                           )}
+                          {item.customization.keychain_material && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{item.customization.keychain_material}</span>
+                          )}
+                          {item.customization.keychain_shape && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded capitalize">{item.customization.keychain_shape} shape</span>
+                          )}
+                          {item.customization.print_type && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{item.customization.print_type}</span>
+                          )}
                           {item.customization.images.length > 0 && (
                             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded flex items-center gap-1">
                               <ImageIcon className="w-3 h-3" /> {item.customization.images.length} photo(s)
