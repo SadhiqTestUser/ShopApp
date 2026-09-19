@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  ArrowLeft, Loader2, Package, MapPin, User, Phone, CreditCard, ImageIcon, ExternalLink,
+  ArrowLeft, Loader2, Package, MapPin, User, Phone, CreditCard, ImageIcon, ExternalLink, Download,
 } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -94,6 +94,60 @@ export default function AdminOrderDetailPage() {
     }
     load();
   }, [id]);
+
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
+
+  async function downloadAllImages() {
+    if (!order) return;
+    const userName = (order.shipping_name || 'user').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const allImages: { url: string; filename: string }[] = [];
+    items.forEach((item, idx) => {
+      const uploads = imageUrls(item.customization_data);
+      uploads.forEach((url, i) =>
+        allImages.push({
+          url,
+          filename: `${userName}_item${idx + 1}_img${i + 1}.jpg`,
+        }),
+      );
+    });
+    if (allImages.length === 0) return;
+    setDownloading(true);
+    setDownloadError(false);
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/download-order-images`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${supabaseKey}`,
+            apikey: supabaseKey,
+          },
+          body: JSON.stringify({ images: allImages }),
+        },
+      );
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `${userName}_images.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      console.error('[admin] download all failed:', err);
+      setDownloadError(true);
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -198,9 +252,30 @@ export default function AdminOrderDetailPage() {
 
         {/* Items */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4 flex items-center gap-2">
-            <Package className="w-4 h-4 text-teal-600" /> Items ({items.length})
-          </h2>
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Package className="w-4 h-4 text-teal-600" /> Items ({items.length})
+            </h2>
+            {(() => {
+              const totalImages = items.reduce((sum, item) => sum + imageUrls(item.customization_data).length, 0);
+              if (totalImages === 0) return null;
+              return (
+                <div className="flex flex-col items-end gap-1">
+                  <button
+                    onClick={downloadAllImages}
+                    disabled={downloading}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium text-sm transition-all disabled:opacity-50"
+                  >
+                    {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                    Download All ({totalImages})
+                  </button>
+                  {downloadError && (
+                    <span className="text-xs text-red-500">Some images failed to download. Try again.</span>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
           {items.length === 0 ? (
             <p className="text-slate-500 text-sm py-4 text-center">No items on this order.</p>
           ) : (

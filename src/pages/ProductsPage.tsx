@@ -18,12 +18,19 @@ export default function ProductsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    getDocs(query(collection(db, 'products'), where('active', '==', true))).then((snap) => {
-      const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Product);
-      list.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
-      setProducts(list);
-      setLoading(false);
-    });
+    let mounted = true;
+    getDocs(query(collection(db, 'products'), where('active', '==', true)))
+      .then((snap) => {
+        if (!mounted) return;
+        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Product);
+        list.sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')));
+        setProducts(list);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -96,7 +103,7 @@ export default function ProductsPage() {
         ) : (
           <motion.div
             key={`${filter}-${searchQuery}`}
-            className="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-6"
+            className="grid grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5 lg:gap-6"
             variants={staggerContainer}
             initial="hidden"
             whileInView="show"
@@ -119,7 +126,6 @@ export default function ProductsPage() {
                 <div className="p-2 sm:p-4 flex flex-col flex-1">
                   <span className="text-[10px] sm:text-xs font-medium text-teal-600 bg-teal-50 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded w-fit">{p.category}</span>
                   <h3 className="mt-1 sm:mt-2 text-xs sm:text-base font-semibold text-slate-900 line-clamp-1 sm:line-clamp-none group-hover:text-teal-600 transition-colors">{p.name}</h3>
-                  <p className="mt-1 text-sm text-slate-500 line-clamp-2 hidden sm:block">{p.description}</p>
                   <div className="mt-2 sm:mt-4 flex items-center justify-between mt-auto">
                     {(() => {
                       const offer = getOfferInfo(p);

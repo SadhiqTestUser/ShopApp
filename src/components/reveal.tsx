@@ -26,7 +26,7 @@ export function RevealText({
   const Tag = motion[as];
 
   if (reduce) {
-    const Plain = as as 'span';
+    const Plain = as;
     return <Plain className={className}>{text}</Plain>;
   }
 

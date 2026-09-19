@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Package, Users, ShoppingBag, TrendingUp, Loader2,
-  Clock, Plus, Trash2, Edit3, X, Search, Tag,
+  Clock, Plus, Trash2, Edit3, X, Search, Tag, ImageIcon,
 } from 'lucide-react';
 import {
   collection, getDocs, doc, updateDoc, addDoc, deleteDoc,
@@ -165,6 +165,17 @@ export default function AdminDashboard() {
     return true;
   });
   const filteredRevenue = filteredOrders.reduce((sum, o) => sum + Number(o.total), 0);
+
+  const productMap: Record<string, Product> = {};
+  for (const p of products) productMap[p.id] = p;
+  const orderItemThumbnails = (o: Order): { url: string; name: string }[] => {
+    const out: { url: string; name: string }[] = [];
+    for (const item of o.order_items ?? []) {
+      const p = productMap[item.product_id];
+      if (p?.image_url) out.push({ url: p.image_url, name: p.name });
+    }
+    return out;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -333,6 +344,7 @@ export default function AdminDashboard() {
                       <thead>
                         <tr className="border-b border-slate-200">
                           <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Order ID</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Product</th>
                           <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Customer</th>
                           <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Date</th>
                           <th className="text-left py-3 px-4 text-sm font-medium text-slate-500">Items</th>
@@ -350,6 +362,30 @@ export default function AdminDashboard() {
                               className="border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
                             >
                               <td className="py-3 px-4 text-sm font-medium text-slate-900">#{order.id.slice(0, 8)}</td>
+                              <td className="py-3 px-4">
+                                {(() => {
+                                  const thumbs = orderItemThumbnails(order);
+                                  if (thumbs.length === 0) return <ImageIcon className="w-5 h-5 text-slate-300" />;
+                                  return (
+                                    <div className="flex -space-x-2">
+                                      {thumbs.slice(0, 3).map((t, i) => (
+                                        <img
+                                          key={i}
+                                          src={t.url}
+                                          alt={t.name}
+                                          title={t.name}
+                                          className="w-9 h-9 rounded-lg border-2 border-white object-cover shadow-sm"
+                                        />
+                                      ))}
+                                      {thumbs.length > 3 && (
+                                        <span className="w-9 h-9 rounded-lg border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-500 shadow-sm">
+                                          +{thumbs.length - 3}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </td>
                               <td className="py-3 px-4 text-sm text-slate-500">
                                 <span className="block text-slate-900">{order.shipping_name || '—'}</span>
                                 <span className="text-xs text-slate-400">{[order.shipping_city, order.shipping_state].filter(Boolean).join(', ') || '—'}</span>
