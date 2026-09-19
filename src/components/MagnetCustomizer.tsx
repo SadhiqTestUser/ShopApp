@@ -8,13 +8,13 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { storage } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
 import { formatINR } from '@/lib/currency';
-import { filterString, exportEdited, renderRotated, loadImage, type CropRect } from '@/lib/imageEdit';
+import { filterString, exportEdited, renderRotated, type CropRect } from '@/lib/imageEdit';
 import type { Product } from '@/types';
 
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
-const SQUARE_IMG = 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRu2JI9yvGIezwh4Hyw06C_k17lpuQfAi21HvnfaHhV2b_s_S-cFqg68_Vr79Ae5PknRgB8evlHVb5Tgw1XGZmcImBxgdaG1g';
-const RECT_IMG = 'https://m.media-amazon.com/images/I/41zYzknLVWL.jpg';
+export const MAGNET_SQUARE_IMG = 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRu2JI9yvGIezwh4Hyw06C_k17lpuQfAi21HvnfaHhV2b_s_S-cFqg68_Vr79Ae5PknRgB8evlHVb5Tgw1XGZmcImBxgdaG1g';
+export const MAGNET_RECT_IMG = 'https://m.media-amazon.com/images/I/41zYzknLVWL.jpg';
 
 type MagnetShape = 'square' | 'rectangle';
 
@@ -27,8 +27,8 @@ interface MagnetShapeInfo {
 }
 
 const SHAPES: MagnetShapeInfo[] = [
-  { id: 'square', label: 'Square', dimensions: '3 × 3 inch', image: SQUARE_IMG, ratio: 1 },
-  { id: 'rectangle', label: 'Rectangle', dimensions: '3.5 × 2.5 inch', image: RECT_IMG, ratio: 3.5 / 2.5 },
+  { id: 'square', label: 'Square', dimensions: '3 × 3 inch', image: MAGNET_SQUARE_IMG, ratio: 1 },
+  { id: 'rectangle', label: 'Rectangle', dimensions: '3.5 × 2.5 inch', image: MAGNET_RECT_IMG, ratio: 3.5 / 2.5 },
 ];
 
 interface MagnetData {
@@ -380,9 +380,11 @@ function Magnet3DPreview({ magnet, size = 200 }: { magnet: MagnetData; size?: nu
 export default function MagnetCustomizer({
   product,
   onAddToCart,
+  onActiveShapeChange,
 }: {
   product: Product;
   onAddToCart: (customization: Record<string, unknown>, totalQty: number, unitPrice: number) => void;
+  onActiveShapeChange?: (shape: MagnetShape) => void;
 }) {
   const { user } = useAuth();
   const [magnets, setMagnets] = useState<MagnetData[]>([newMagnet('square')]);
@@ -390,6 +392,10 @@ export default function MagnetCustomizer({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    if (onActiveShapeChange) onActiveShapeChange('square');
+  }, [onActiveShapeChange]);
 
   const totalQty = magnets.reduce((sum, m) => sum + m.quantity, 0);
   const perPiece = tierPrice(totalQty);
@@ -422,6 +428,7 @@ export default function MagnetCustomizer({
     setMagnets((prev) => [...prev, newMagnet(shape)]);
     setShowShapeModal(false);
     setEditingIndex(magnets.length);
+    if (magnets.length === 0 && onActiveShapeChange) onActiveShapeChange(shape);
   }
 
   function removeMagnet(index: number) {
@@ -434,6 +441,7 @@ export default function MagnetCustomizer({
 
   function changeShape(index: number, shape: MagnetShape) {
     setMagnets((prev) => prev.map((m, i) => i === index ? { ...m, shape } : m));
+    if (index === 0 && onActiveShapeChange) onActiveShapeChange(shape);
   }
 
   function handleAddToCart() {

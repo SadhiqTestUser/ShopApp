@@ -121,7 +121,7 @@ function InlineEditor({
   async function handleSave() {
     if (!srcUrl) return;
     const params: EditParams = {
-      brightness, contrast, saturation, rotation, crop: null,
+      brightness, contrast, saturation, highlights: 1, shadows: 1, rotation, crop: null,
     };
     const blob = await exportEdited(srcUrl, params);
     onSave(blob);

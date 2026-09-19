@@ -20,6 +20,7 @@ export interface CartItem {
     keychain_material?: string | null;
     keychain_shape?: string | null;
     print_type?: string | null;
+    magnets?: { shape: string; quantity: number; image: string | null }[];
   } | null;
 }
 

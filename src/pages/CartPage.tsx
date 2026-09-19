@@ -68,6 +68,11 @@ export default function CartPage() {
                           {item.customization.magnet_shape && (
                             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded capitalize">{item.customization.magnet_shape} shape</span>
                           )}
+                          {item.customization.magnets && item.customization.magnets.length > 0 && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
+                              {item.customization.magnets.length} magnet(s): {item.customization.magnets.map((m) => `${m.shape}×${m.quantity}`).join(', ')}
+                            </span>
+                          )}
                           {item.customization.shape && (
                             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded capitalize">{item.customization.shape} shape</span>
                           )}

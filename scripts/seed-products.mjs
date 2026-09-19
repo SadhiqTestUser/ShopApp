@@ -81,7 +81,7 @@ const products = [
     description: 'Personalized acrylic fridge magnets in Square (3×3 inch) or Rectangle (3.5×2.5 inch). High-gloss finish with strong magnetic backing. Add multiple magnets for quantity-based pricing.',
     price: 169.0,
     category: 'Gifts',
-    image_url: 'https://m.media-amazon.com/images/I/41zYzknLVWL.jpg',
+    image_url: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRu2JI9yvGIezwh4Hyw06C_k17lpuQfAi21HvnfaHhV2b_s_S-cFqg68_Vr79Ae5PknRgB8evlHVb5Tgw1XGZmcImBxgdaG1g',
     active: true,
     created_at: '2026-09-15T10:00:00.000000+00:00',
     customization_type: 'magnet',

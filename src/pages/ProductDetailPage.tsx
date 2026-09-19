@@ -12,7 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart, type CartItem } from '@/context/CartContext';
 import { formatINR, getOfferInfo } from '@/lib/currency';
 import PhotoEditorModal from '@/components/PhotoEditorModal';
-import MagnetCustomizer from '@/components/MagnetCustomizer';
+import MagnetCustomizer, { MAGNET_SQUARE_IMG, MAGNET_RECT_IMG } from '@/components/MagnetCustomizer';
 import type { Product, CustomizationType, FrameSizeOption } from '@/types';
 
 interface UploadedImage {
@@ -84,6 +84,7 @@ export default function ProductDetailPage() {
   // Customization state
   const [pageCount, setPageCount] = useState<number | null>(null);
   const [magnetShape, setMagnetShape] = useState<string | null>(null);
+  const [magnetHeroImage, setMagnetHeroImage] = useState<string>(MAGNET_SQUARE_IMG);
   const [images, setImages] = useState<UploadedImage[]>([]);
   const [shape, setShape] = useState<string | null>(null);
   const [layout, setLayout] = useState<string | null>(null);
@@ -339,11 +340,19 @@ export default function ProductDetailPage() {
                   {customType === 'photo_frame' && selectedFrameSize ? ` — ${selectedFrameSize.label}` : ''}
                 </p>
               </>
-            ) : (
+            ) : customType === 'magnet' ? (
               <div className="aspect-square bg-slate-100">
-                <img src={product.image_url ?? ''} alt={product.name} className="w-full h-full object-cover" />
+                <motion.img
+                  key={magnetHeroImage}
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                  src={magnetHeroImage}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
-            )}
+            ) : (
           </div>
 
           {/* Details */}
@@ -410,6 +419,7 @@ export default function ProductDetailPage() {
 {customType === 'magnet' && (
               <MagnetCustomizer
                 product={product}
+                onActiveShapeChange={(shape) => setMagnetHeroImage(shape === 'rectangle' ? MAGNET_RECT_IMG : MAGNET_SQUARE_IMG)}
                 onAddToCart={(customization, totalQty) => {
                   addToCart(product, totalQty, customization as CartItem['customization']);
                   setAdded(true);
