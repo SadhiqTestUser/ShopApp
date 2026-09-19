@@ -60,7 +60,7 @@ export const KEYCHAINS: KeychainDefinition[] = [
     id: 'keychain-acrylic-heart', name: 'Acrylic Heart Keychain', material: 'Acrylic', shape: 'heart',
     image_url: 'https://cdn.printshoppy.com/image/cache/catalog/product-image/key-chains-2/kc-102-600x600.jpg', price: 199,
     printTypes: ['Single Side Print'], description: 'Glossy transparent acrylic heart with a bright single-sided photo.',
-    previewFrame: { top: '44%', left: '26%', width: '35%', height: '42%' },
+    previewFrame: { top: '47%', left: '26%', width: '36%', height: '37%' }
   },
   {
     id: 'keychain-acrylic-locket', name: 'Acrylic Heart Opening Locket', material: 'Acrylic', shape: 'locket',

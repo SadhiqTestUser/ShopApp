@@ -474,7 +474,12 @@ export default function KeychainDetailPage() {
                         <p className="text-xs font-medium text-slate-500 mb-2">{slotLabels[slot] ?? `Photo ${slot + 1}`}</p>
                         {img ? (
                           <div className="relative group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-white">
-                            <img src={img.url} alt={slotLabels[slot]} className="w-full h-full object-cover" />
+                            <img
+                              src={img.url}
+                              alt={slotLabels[slot]}
+                              className="w-full h-full object-cover"
+                              style={shapeClip(shape)}
+                            />
                             <button
                               onClick={() => setEditorIndex(slot)}
                               title="Edit"

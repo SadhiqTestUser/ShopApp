@@ -42,6 +42,7 @@ export default function ProductsPage() {
   const showKeychainCard = filter === 'All' || filter === 'Accessories';
   const keychainMatchesSearch = !searchQuery || 'keychain'.includes(searchQuery.toLowerCase());
   const filtered = products.filter((p) => {
+    if (p.customization_type === 'keychain') return false;
     const matchesCategory = filter === 'All' || p.category === filter;
     const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
