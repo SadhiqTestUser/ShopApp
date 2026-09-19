@@ -9,9 +9,10 @@ import { doc, getDoc } from 'firebase/firestore';
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '@/lib/firebase';
 import { useAuth } from '@/context/AuthContext';
-import { useCart } from '@/context/CartContext';
+import { useCart, type CartItem } from '@/context/CartContext';
 import { formatINR, getOfferInfo } from '@/lib/currency';
 import PhotoEditorModal from '@/components/PhotoEditorModal';
+import MagnetCustomizer from '@/components/MagnetCustomizer';
 import type { Product, CustomizationType, FrameSizeOption } from '@/types';
 
 interface UploadedImage {
@@ -406,26 +407,15 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            {/* Customization: Magnet Shape */}
-            {customType === 'magnet' && (
-              <div className="mt-6 bg-teal-50/50 rounded-xl p-5 border border-teal-100">
-                <h3 className="font-semibold text-slate-900 mb-3">Choose Shape</h3>
-                <div className="flex gap-3">
-                  {magnetShapes.map((shape) => (
-                    <button
-                      key={shape}
-                      onClick={() => { setMagnetShape(shape); setImages([]); }}
-                      className={`px-5 py-3 rounded-xl font-semibold text-sm capitalize transition-all ${
-                        magnetShape === shape
-                          ? 'bg-teal-600 text-white shadow-md'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:border-teal-300'
-                      }`}
-                    >
-                      {shape}
-                    </button>
-                  ))}
-                </div>
-              </div>
+{customType === 'magnet' && (
+              <MagnetCustomizer
+                product={product}
+                onAddToCart={(customization, totalQty) => {
+                  addToCart(product, totalQty, customization as CartItem['customization']);
+                  setAdded(true);
+                  setTimeout(() => setAdded(false), 2000);
+                }}
+              />
             )}
 
             {/* Customization: Wooden Photo Stand */}
@@ -577,7 +567,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Image Upload */}
-            {needsCustomization && (customType !== 'photo_book' || pageCount) && (customType !== 'magnet' || magnetShape) && (customType !== 'wooden_stand' || (shape && layout)) && (
+            {needsCustomization && customType !== 'magnet' && (customType !== 'photo_book' || pageCount) && (customType !== 'wooden_stand' || (shape && layout)) && (
               <div className="mt-6 bg-slate-50 rounded-xl p-5 border border-slate-200">
                 <h3 className="font-semibold text-slate-900 mb-1">
                   Upload Your Photos
@@ -654,6 +644,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity */}
+            {customType !== 'magnet' && (
             <div className="mt-6">
               <label className="block text-sm font-medium text-slate-700 mb-2">Quantity</label>
               <div className="flex items-center gap-3">
@@ -672,8 +663,10 @@ export default function ProductDetailPage() {
                 </button>
               </div>
             </div>
+            )}
 
             {/* Actions */}
+            {customType !== 'magnet' && (
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <motion.button
                 onClick={handleAddToCart}
@@ -703,13 +696,12 @@ export default function ProductDetailPage() {
                 {ordering ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Buy Now'}
               </motion.button>
             </div>
+            )}
 
-            {needsCustomization && !customizationValid && (
+            {needsCustomization && customType !== 'magnet' && !customizationValid && (
               <p className="mt-3 text-sm text-amber-600">
                 {customType === 'photo_book' && !pageCount && 'Please select the number of pages.'}
                 {customType === 'photo_book' && pageCount && images.length < pageCount && `Please upload all ${pageCount} photos (${images.length}/${pageCount}).`}
-                {customType === 'magnet' && !magnetShape && 'Please select a shape.'}
-                {customType === 'magnet' && magnetShape && images.length < 1 && 'Please upload at least 1 photo.'}
                 {(customType === 'phone_case' || customType === 'mug') && images.length < 1 && 'Please upload at least 1 photo.'}
                 {customType === 'wooden_stand' && !shape && 'Please select a stand shape.'}
                 {customType === 'wooden_stand' && shape && !layout && 'Please select a photo layout.'}

@@ -12,6 +12,8 @@ export interface EditParams {
   brightness: number; // 1 = unchanged
   contrast: number; // 1 = unchanged
   saturation: number; // 1 = unchanged
+  highlights: number; // 1 = unchanged
+  shadows: number; // 1 = unchanged
   rotation: number; // 0 | 90 | 180 | 270
   crop: CropRect | null; // in rotated-image pixel coordinates
 }
@@ -20,6 +22,8 @@ export const DEFAULT_EDIT: Omit<EditParams, 'crop'> = {
   brightness: 1,
   contrast: 1,
   saturation: 1,
+  highlights: 1,
+  shadows: 1,
   rotation: 0,
 };
 
@@ -39,8 +43,16 @@ export function getRotatedSize(w: number, h: number, rotation: number) {
   return r === 90 || r === 270 ? { width: h, height: w } : { width: w, height: h };
 }
 
-export function filterString(brightness: number, contrast: number, saturation: number): string {
-  return `brightness(${brightness}) contrast(${contrast}) saturate(${saturation})`;
+export function filterString(
+  brightness: number,
+  contrast: number,
+  saturation: number,
+  highlights = 1,
+  shadows = 1,
+): string {
+  const highlightBrightness = 1 + (highlights - 1) * 0.12;
+  const shadowBrightness = 1 + (shadows - 1) * 0.08;
+  return `brightness(${brightness * highlightBrightness * shadowBrightness}) contrast(${contrast}) saturate(${saturation})`;
 }
 
 // Draw the source image rotated (no filters) onto a fresh canvas.
@@ -80,7 +92,7 @@ export async function exportEdited(url: string, params: EditParams): Promise<Blo
   const base = drawRotated(
     img,
     params.rotation,
-    filterString(params.brightness, params.contrast, params.saturation)
+    filterString(params.brightness, params.contrast, params.saturation, params.highlights, params.shadows)
   );
 
   let out = base;

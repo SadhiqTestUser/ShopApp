@@ -33,6 +33,8 @@ export default function PhotoEditorModal({
   const [brightness, setBrightness] = useState(1);
   const [contrast, setContrast] = useState(1);
   const [saturation, setSaturation] = useState(1);
+  const [highlights, setHighlights] = useState(1);
+  const [shadows, setShadows] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [aspect, setAspect] = useState<Aspect>('original');
   const [zoom, setZoom] = useState(1);
@@ -41,7 +43,7 @@ export default function PhotoEditorModal({
 
   // Reset all edits when switching to a different photo.
   useEffect(() => {
-    setBrightness(1); setContrast(1); setSaturation(1); setRotation(0);
+    setBrightness(1); setContrast(1); setSaturation(1); setHighlights(1); setShadows(1); setRotation(0);
     setAspect('original'); setZoom(1); setOffset({ x: 0, y: 0 });
   }, [index]);
 
@@ -114,21 +116,21 @@ export default function PhotoEditorModal({
   }
 
   function reset() {
-    setBrightness(1); setContrast(1); setSaturation(1); setRotation(0);
+    setBrightness(1); setContrast(1); setSaturation(1); setHighlights(1); setShadows(1); setRotation(0);
     setAspect('original'); setZoom(1); setOffset({ x: 0, y: 0 });
   }
 
   async function handleSave() {
     if (!srcUrl) return;
     const blob = await exportEdited(srcUrl, {
-      brightness, contrast, saturation, rotation, crop: computeCrop(),
+      brightness, contrast, saturation, highlights, shadows, rotation, crop: computeCrop(),
     });
     await onSave(index, blob);
   }
 
   if (!current) return null;
 
-  const cssFilter = filterString(brightness, contrast, saturation);
+  const cssFilter = filterString(brightness, contrast, saturation, highlights, shadows);
   const aspects: { id: Aspect; label: string }[] = [
     { id: 'original', label: 'Original' },
     { id: '1', label: '1:1' },
@@ -239,6 +241,8 @@ export default function PhotoEditorModal({
                 ['Brightness', brightness, setBrightness, 0.5, 1.5],
                 ['Contrast', contrast, setContrast, 0.5, 1.5],
                 ['Saturation', saturation, setSaturation, 0, 2],
+                ['Highlights', highlights, setHighlights, 0.5, 1.5],
+                ['Shadows', shadows, setShadows, 0.5, 1.5],
               ] as const).map(([label, val, set, min, max]) => (
                 <div key={label}>
                   <div className="flex justify-between text-xs text-slate-500 mb-1">

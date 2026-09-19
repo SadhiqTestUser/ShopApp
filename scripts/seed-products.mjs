@@ -72,20 +72,20 @@ const products = [
   { id: '6101c3d4-51e8-4146-970c-108769989cef', name: 'Custom Photo Book', description: 'Premium hardcover photo album with lay-flat binding. Choose your photos, pick a layout, and we print a keepsake that lasts a lifetime.', price: 799.0, category: 'Photo Books', image_url: 'https://images.pexels.com/photos/18317486/pexels-photo-18317486.jpeg?auto=compress&cs=tinysrgb&h=650&w=940', active: true, created_at: '2026-09-14T11:44:37.520264+00:00', customization_type: 'photo_book', customization_options: { pageCounts: [10, 20, 30], pricePerPage: 50 } },
   { id: '69c23222-470d-435d-987b-3c18e8447c0d', name: 'Personalized Phone Case', description: 'Slim, durable phone case printed with your favorite photo or design. Compatible with all major phone models.', price: 349.0, category: 'Accessories', image_url: 'https://images.pexels.com/photos/1670768/pexels-photo-1670768.jpeg?auto=compress&cs=tinysrgb&h=650&w=940', active: true, created_at: '2026-09-14T11:44:37.520264+00:00', customization_type: 'phone_case', customization_options: { maxImages: 1 } },
   { id: 'b57e5f59-4ddd-46fb-a84f-bbecc8db9314', name: 'Custom Photo Mug', description: 'Start your morning with a smile. 11oz ceramic mug printed with your photo, full-color and dishwasher safe.', price: 249.0, category: 'Drinkware', image_url: 'https://images.pexels.com/photos/9261414/pexels-photo-9261414.jpeg?auto=compress&cs=tinysrgb&h=650&w=940', active: true, created_at: '2026-09-14T11:44:37.520264+00:00', customization_type: 'mug', customization_options: { maxImages: 1 } },
-  { id: '38661002-59aa-421b-b1f3-9fb191f0c6a1', name: 'Acrylic Fridge Magnet', description: 'Set of 6 custom photo magnets. High-gloss acrylic finish with strong magnetic backing.', price: 199.0, category: 'Gifts', image_url: 'https://images.pexels.com/photos/8101470/pexels-photo-8101470.jpeg?auto=compress&cs=tinysrgb&h=650&w=940', active: true, created_at: '2026-09-14T11:44:37.520264+00:00', customization_type: 'magnet', customization_options: { shapes: ['round', 'square'], maxImages: 6 } },
+  { id: '38661002-59aa-421b-b1f3-9fb191f0c6a1', name: 'Acrylic Fridge Magnet', description: 'Custom acrylic fridge magnets in Square (3×3 inch) or Rectangle (3.5×2.5 inch). High-gloss acrylic finish with strong magnetic backing. Add multiple magnets and get quantity-based pricing.', price: 169.0, category: 'Gifts', image_url: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRu2JI9yvGIezwh4Hyw06C_k17lpuQfAi21HvnfaHhV2b_s_S-cFqg68_Vr79Ae5PknRgB8evlHVb5Tgw1XGZmcImBxgdaG1g', active: true, created_at: '2026-09-14T11:44:37.520264+00:00', customization_type: 'magnet', customization_options: { shapes: ['square', 'rectangle'], maxImages: 1, magnetShapes: [{ id: 'square', label: 'Square', dimensions: '3 × 3 inch', image: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRu2JI9yvGIezwh4Hyw06C_k17lpuQfAi21HvnfaHhV2b_s_S-cFqg68_Vr79Ae5PknRgB8evlHVb5Tgw1XGZmcImBxgdaG1g' }, { id: 'rectangle', label: 'Rectangle', dimensions: '3.5 × 2.5 inch', image: 'https://m.media-amazon.com/images/I/41zYzknLVWL.jpg' }] } },
 
   // --- New customizable photo products ---
   {
     id: 'a1111111-1111-4111-8111-111111111111',
     name: 'Custom Fridge Magnets',
-    description: 'Personalized photo fridge magnets in your choice of Round or Square shape. High-gloss finish with a strong magnetic backing that holds firmly.',
-    price: 149.0,
+    description: 'Personalized acrylic fridge magnets in Square (3×3 inch) or Rectangle (3.5×2.5 inch). High-gloss finish with strong magnetic backing. Add multiple magnets for quantity-based pricing.',
+    price: 169.0,
     category: 'Gifts',
-    image_url: 'https://images.pexels.com/photos/8101470/pexels-photo-8101470.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    image_url: 'https://m.media-amazon.com/images/I/41zYzknLVWL.jpg',
     active: true,
     created_at: '2026-09-15T10:00:00.000000+00:00',
     customization_type: 'magnet',
-    customization_options: { shapes: ['round', 'square'], maxImages: 6 },
+    customization_options: { shapes: ['square', 'rectangle'], maxImages: 1, magnetShapes: [{ id: 'square', label: 'Square', dimensions: '3 × 3 inch', image: 'https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRu2JI9yvGIezwh4Hyw06C_k17lpuQfAi21HvnfaHhV2b_s_S-cFqg68_Vr79Ae5PknRgB8evlHVb5Tgw1XGZmcImBxgdaG1g' }, { id: 'rectangle', label: 'Rectangle', dimensions: '3.5 × 2.5 inch', image: 'https://m.media-amazon.com/images/I/41zYzknLVWL.jpg' }] },
   },
   {
     id: 'a2222222-2222-4222-8222-222222222222',
