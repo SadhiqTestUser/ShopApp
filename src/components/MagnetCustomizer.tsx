@@ -393,9 +393,11 @@ export default function MagnetCustomizer({
   const [showFullPreview, setShowFullPreview] = useState(false);
   const [added, setAdded] = useState(false);
 
+  const activeShape = magnets[0]?.shape ?? 'square';
+
   useEffect(() => {
-    if (onActiveShapeChange) onActiveShapeChange('square');
-  }, [onActiveShapeChange]);
+    if (onActiveShapeChange) onActiveShapeChange(activeShape);
+  }, [onActiveShapeChange, activeShape]);
 
   const totalQty = magnets.reduce((sum, m) => sum + m.quantity, 0);
   const perPiece = tierPrice(totalQty);
@@ -432,7 +434,11 @@ export default function MagnetCustomizer({
   }
 
   function removeMagnet(index: number) {
-    setMagnets((prev) => prev.filter((_, i) => i !== index));
+    setMagnets((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      if (index === 0 && next.length > 0 && onActiveShapeChange) onActiveShapeChange(next[0].shape);
+      return next;
+    });
   }
 
   function changeQty(index: number, delta: number) {

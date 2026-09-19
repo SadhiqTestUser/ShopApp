@@ -8,6 +8,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { formatINR, getOfferInfo } from '@/lib/currency';
 import { fadeInUp, staggerContainer, hoverLift, tapScale, revealViewport } from '@/lib/motion';
 import { KEYCHAIN_CATEGORY_IMAGE } from '@/lib/keychains';
+import { MAGNET_SQUARE_IMG } from '@/components/MagnetCustomizer';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -25,7 +26,15 @@ export default function ProductsPage() {
         if (!mounted) return;
         const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Product);
         list.sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')));
-        setProducts(list);
+
+        const magnetProducts = list.filter((p) => p.customization_type === 'magnet' || /fridge magnets?/i.test(p.name));
+        const canonicalMagnet = magnetProducts.find((p) => p.id === '38661002-59aa-421b-b1f3-9fb191f0c6a1')
+          ?? magnetProducts.find((p) => /acrylic fridge magnets?/i.test(p.name))
+          ?? magnetProducts[0];
+        const nonMagnetProducts = list.filter((p) => !magnetProducts.includes(p));
+        setProducts(canonicalMagnet
+          ? [{ ...canonicalMagnet, name: 'Acrylic Fridge Magnets', image_url: MAGNET_SQUARE_IMG }, ...nonMagnetProducts]
+          : nonMagnetProducts);
       })
       .catch(() => {})
       .finally(() => {

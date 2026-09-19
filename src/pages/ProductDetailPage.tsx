@@ -103,6 +103,7 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const customType: CustomizationType = product?.customization_type ?? 'standard';
+  const isMagnetProduct = customType === 'magnet' || /fridge magnets?/i.test(product?.name ?? '');
   const customOptions = product?.customization_options ?? {};
   const pageCounts = (customOptions.pageCounts as number[]) ?? [10, 20, 30];
   const pricePerPage = (customOptions.pricePerPage as number) ?? 50;
@@ -116,7 +117,7 @@ export default function ProductDetailPage() {
   };
   // Photo books need one photo per page; wooden stands one per layout slot; magnets one per magnet.
   const effectiveMaxImages =
-    customType === 'magnet'
+    isMagnetProduct
       ? 1
       : customType === 'photo_book'
         ? pageCount ?? 0
@@ -136,7 +137,7 @@ export default function ProductDetailPage() {
   // Live preview: use the first uploaded image, cropped to the selected shape.
   const previewImage = images[0]?.url ?? null;
   const previewShape =
-    customType === 'magnet'
+    isMagnetProduct
       ? magnetShape
       : customType === 'wooden_stand' || customType === 'hanging_stand'
         ? shape
@@ -159,7 +160,7 @@ export default function ProductDetailPage() {
   const customizationValid = (() => {
     if (!needsCustomization) return true;
     if (customType === 'photo_book') return pageCount !== null && images.length >= pageCount;
-    if (customType === 'magnet') return magnetShape !== null && images.length >= 1;
+    if (isMagnetProduct) return magnetShape !== null && images.length >= 1;
     if (customType === 'phone_case' || customType === 'mug') return images.length >= 1;
     if (customType === 'wooden_stand') return shape !== null && layout !== null && images.length >= standLayoutPhotoCount(layout);
     if (customType === 'hanging_stand') return shape !== null && images.length >= 1;
@@ -340,7 +341,7 @@ export default function ProductDetailPage() {
                   {customType === 'photo_frame' && selectedFrameSize ? ` — ${selectedFrameSize.label}` : ''}
                 </p>
               </>
-            ) : customType === 'magnet' ? (
+            ) : isMagnetProduct ? (
               <div className="aspect-square bg-slate-100">
                 <motion.img
                   key={magnetHeroImage}
@@ -353,6 +354,10 @@ export default function ProductDetailPage() {
                 />
               </div>
             ) : (
+              <div className="aspect-square bg-slate-100">
+                <img src={product.image_url ?? ''} alt={product.name} className="w-full h-full object-cover" />
+              </div>
+            )}
           </div>
 
           {/* Details */}
@@ -416,7 +421,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-{customType === 'magnet' && (
+{isMagnetProduct && (
               <MagnetCustomizer
                 product={product}
                 onActiveShapeChange={(shape) => setMagnetHeroImage(shape === 'rectangle' ? MAGNET_RECT_IMG : MAGNET_SQUARE_IMG)}
@@ -577,7 +582,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Image Upload */}
-            {needsCustomization && customType !== 'magnet' && (customType !== 'photo_book' || pageCount) && (customType !== 'wooden_stand' || (shape && layout)) && (
+            {needsCustomization && !isMagnetProduct && (customType !== 'photo_book' || pageCount) && (customType !== 'wooden_stand' || (shape && layout)) && (
               <div className="mt-6 bg-slate-50 rounded-xl p-5 border border-slate-200">
                 <h3 className="font-semibold text-slate-900 mb-1">
                   Upload Your Photos
@@ -654,7 +659,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Quantity */}
-            {customType !== 'magnet' && (
+            {!isMagnetProduct && (
             <div className="mt-6">
               <label className="block text-sm font-medium text-slate-700 mb-2">Quantity</label>
               <div className="flex items-center gap-3">
@@ -676,7 +681,7 @@ export default function ProductDetailPage() {
             )}
 
             {/* Actions */}
-            {customType !== 'magnet' && (
+            {!isMagnetProduct && (
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <motion.button
                 onClick={handleAddToCart}
@@ -708,7 +713,7 @@ export default function ProductDetailPage() {
             </div>
             )}
 
-            {needsCustomization && customType !== 'magnet' && !customizationValid && (
+            {needsCustomization && !isMagnetProduct && !customizationValid && (
               <p className="mt-3 text-sm text-amber-600">
                 {customType === 'photo_book' && !pageCount && 'Please select the number of pages.'}
                 {customType === 'photo_book' && pageCount && images.length < pageCount && `Please upload all ${pageCount} photos (${images.length}/${pageCount}).`}
