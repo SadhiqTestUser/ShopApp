@@ -261,6 +261,28 @@ const products = [
     },
   },
 
+  // --- Customizable writing pads (Stationery) ---
+  {
+    id: 'customizable-writing-pad',
+    name: 'Customizable Writing Pad',
+    description: 'A4 MDF wooden or acrylic writing pad with your photo placed inside the writing area. Drag, zoom and edit your image before adding it to cart.',
+    price: 399.0,
+    category: 'Stationery',
+    image_url: '/stationery/pads/5a7b6026-10d9-4402-bff8-82021ea5869c.png',
+    active: true,
+    created_at: '2026-10-04T00:00:00.000000+00:00',
+    customization_type: 'stationery_pad',
+    customization_options: {
+      materials: ['wooden', 'acrylic'],
+      defaultMaterial: 'wooden',
+      size: 'A4',
+      price: 399,
+      maxImages: 1,
+      previewImage: '/stationery/pads/5a7b6026-10d9-4402-bff8-82021ea5869c.png',
+      writingArea: { left: 0.20, top: 0.16, width: 0.60, height: 0.82 },
+    },
+  },
+
   // --- Name Pencils (Stationery) ---
   {
     id: 'name-pencil-set',

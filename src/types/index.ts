@@ -22,6 +22,7 @@ export type CustomizationType =
   | 'keychain'
   | 'name_pencil'
   | 'name_pen'
+  | 'stationery_pad'
   | 'standard';
 
 export interface FrameSizeOption {

@@ -59,6 +59,10 @@ export interface CartItem {
     pen_names?: string[];
     pen_packs?: number;
     name_packs?: { name: string; packs: number }[];
+    pad_material?: string | null;
+    material_label?: string | null;
+    pad_size?: string | null;
+    child_name?: string | null;
     mug_type?: string | null;
     mug_type_label?: string | null;
     mug_color?: string | null;

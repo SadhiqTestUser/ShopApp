@@ -5,6 +5,7 @@ export interface CustomizationEntry {
 
 const FIELDS: [string, string][] = [
   ['customization_type', 'Customization'], ['page_count', 'Pages'],
+  ['pad_material', 'Pad material'], ['material_label', 'Material'], ['pad_size', 'Pad size'], ['child_name', 'Child name'],
   ['magnet_shape', 'Magnet shape'], ['magnets', 'Magnets'], ['shape', 'Shape'],
   ['layout', 'Layout'], ['frame_size', 'Frame size'], ['frame_orientation', 'Orientation'],
   ['frame_color', 'Frame colour'], ['number_of_people', 'People'], ['soft_copy', 'Soft copy'],

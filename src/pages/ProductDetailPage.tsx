@@ -16,6 +16,7 @@ import MagnetCustomizer, { MAGNET_SQUARE_IMG, MAGNET_RECT_IMG } from '@/componen
 import NamePencilCustomizer from '@/components/NamePencilCustomizer';
 import MugCustomizer from '@/components/mug/MugCustomizer';
 import PhotoFrameCustomizer from '@/components/photo-frame/PhotoFrameCustomizer';
+import StationeryPadCustomizer from '@/components/StationeryPadCustomizer';
 import { CustomizationSuggestionsField } from '@/components/CustomizationSuggestions';
 import { withProductSuggestions } from '@/lib/orderSuggestions';
 import type { Product, CustomizationType, FrameSizeOption } from '@/types';
@@ -172,7 +173,7 @@ export default function ProductDetailPage() {
 
   const needsCustomization = customType !== 'standard';
   // These customizers manage their own quantity, pricing and add-to-cart.
-  const selfContainedCustomizer = customType === 'magnet' || customType === 'name_pencil' || customType === 'name_pen' || customType === 'mug';
+  const selfContainedCustomizer = customType === 'magnet' || customType === 'name_pencil' || customType === 'name_pen' || customType === 'mug' || customType === 'stationery_pad';
   const customizationValid = (() => {
     if (!needsCustomization) return true;
     if (customType === 'photo_book') return pageCount !== null && images.length >= pageCount;
@@ -356,6 +357,43 @@ export default function ProductDetailPage() {
           <MugCustomizer key={product.id} suggestionsField={suggestionsField} onAddToCart={(customization, totalQty) => {
             addProductToCart(customization as CartItem['customization'], totalQty);
           }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (customType === 'stationery_pad') {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Link to="/products" className="inline-flex items-center gap-2 text-slate-500 hover:text-teal-600 text-sm font-medium">
+            <ArrowLeft className="w-4 h-4" /> Back to products
+          </Link>
+          <div className="mt-7 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="text-xs font-semibold uppercase tracking-widest text-teal-600">Stationery made personal</span>
+              <h1 className="mt-2 text-3xl sm:text-4xl font-bold tracking-tight text-slate-900">{product.name}</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-slate-500">Personalize an A4 writing pad with your photo. Choose MDF Wooden or Acrylic, then position and edit your image inside the pad.</p>
+            </div>
+            <span className="rounded-full border border-teal-200 bg-teal-50 px-4 py-2 text-xs font-semibold text-teal-700">A4 · ₹399</span>
+          </div>
+          <StationeryPadCustomizer
+            key={product.id}
+            product={product}
+            signedIn={!!user}
+            suggestionsField={suggestionsField}
+            uploadPhoto={async (blob) => {
+              if (!user) throw new Error('Please sign in to save your pad photo.');
+              const fileRef = storageRef(storage, `customization-uploads/${user.uid}/${makeId()}.jpg`);
+              await uploadBytes(fileRef, blob);
+              return getDownloadURL(fileRef);
+            }}
+            onAddToCart={addProductToCart}
+            onBuyNow={(customization, totalQty) => {
+              addProductToCart(customization, totalQty);
+              navigate('/checkout');
+            }}
+          />
         </div>
       </div>
     );
