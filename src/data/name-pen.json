@@ -1,0 +1,21 @@
+{
+  "id": "personalized-name-pen",
+  "name": "Personalized Name Pen",
+  "description": "Personalized ballpoint pens with your name along the barrel. Each pack contains 10 pens with your chosen name — perfect for school, gifting and return gifts. Preview each name live, add multiple names and get quantity-based pricing.",
+  "price": 149,
+  "category": "Stationery",
+  "image_url": "https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcTQ5I9ncC8xHVXgDnftWUobrY3vq3PzrPkuLiomx2ZxYK0nl2eqrTvHTGXX7cCSpKYgvI863GhmM7emwRWyrUhGHaf4oLeEpIiTsFkNQMybEjTvMVlpt4x09g",
+  "active": true,
+  "created_at": "2026-09-14T11:44:37.520264+00:00",
+  "customization_type": "name_pen",
+  "customization_options": {
+    "pensPerPack": 10,
+    "maxNameLength": 14,
+    "tiers": [
+      { "minPacks": 10, "price": 99 },
+      { "minPacks": 5, "price": 129 },
+      { "minPacks": 2, "price": 149 },
+      { "minPacks": 1, "price": 149 }
+    ]
+  }
+}
