@@ -6,7 +6,6 @@ import { exportCropped, loadImage } from '@/lib/imageEdit';
 import type { Product } from '@/types';
 
 const WOODEN_PAD_IMAGE = '/stationery/pads/5a7b6026-10d9-4402-bff8-82021ea5869c.png';
-const ACRYLIC_TEMPLATE_IMAGE = 'https://cdn.printshoppy.com/image/cache/catalog/product-image/photo-clip-boards/104-600x600.jpg';
 const ACRYLIC_TEMPLATE_PREVIEWS = [
   'https://cdn.printshoppy.com/image/catalog/acrylic-writing-pads/jpg/acrylic-writing-pads-preview-1.jpg',
   'https://cdn.printshoppy.com/image/catalog/acrylic-writing-pads/jpg/acrylic-writing-pads-preview-2.jpg',
@@ -15,7 +14,12 @@ const ACRYLIC_TEMPLATE_PREVIEWS = [
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const WOODEN_IMAGE_SIZE = { width: 1122, height: 1402 };
 const WOODEN_AREA = { left: 0.169, top: 0.112, width: 0.56, height: 0.807 };
-const ACRYLIC_AREA = { left: 0.19, top: 0.26, width: 0.62, height: 0.34 };
+const ACRYLIC_AREA = { left: 0.35, top: 0.24, width: 0.30, height: 0.30 };
+const ACRYLIC_DESIGNS = [
+  { label: 'School ABC', background: 'bg-[#ffe14d]', accent: 'text-blue-600' },
+  { label: 'Orange Play', background: 'bg-[#f18b2f]', accent: 'text-white' },
+  { label: 'Rainbow', background: 'bg-[#fffdf8]', accent: 'text-pink-600' },
+] as const;
 type PadMaterial = 'wooden' | 'acrylic';
 
 interface Props {
@@ -46,7 +50,7 @@ export default function StationeryPadCustomizer({
   onBuyNow,
 }: Props) {
   const [material, setMaterial] = useState<PadMaterial>('wooden');
-  const [acrylicTemplate, setAcrylicTemplate] = useState(ACRYLIC_TEMPLATE_IMAGE);
+  const [acrylicTemplateIndex, setAcrylicTemplateIndex] = useState(0);
   const [childName, setChildName] = useState('');
   const [image, setImage] = useState<EditableImage | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -59,6 +63,7 @@ export default function StationeryPadCustomizer({
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
   const photoFrameRef = useRef<HTMLDivElement>(null);
+  const previewSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => () => {
     if (image?.url.startsWith('blob:')) URL.revokeObjectURL(image.url);
@@ -196,8 +201,9 @@ export default function StationeryPadCustomizer({
   }
 
   const area = imageArea(material);
-  const previewImage = material === 'wooden' ? WOODEN_PAD_IMAGE : acrylicTemplate;
-  const previewRatio = material === 'wooden' ? `${WOODEN_IMAGE_SIZE.width} / ${WOODEN_IMAGE_SIZE.height}` : '1 / 1';
+  const previewImage = material === 'wooden' ? WOODEN_PAD_IMAGE : null;
+  const acrylicDesign = ACRYLIC_DESIGNS[acrylicTemplateIndex];
+  const previewRatio = material === 'wooden' ? `${WOODEN_IMAGE_SIZE.width} / ${WOODEN_IMAGE_SIZE.height}` : '4 / 3';
 
   return (
     <div className="mt-7 space-y-6">
@@ -233,12 +239,12 @@ export default function StationeryPadCustomizer({
 
       {material === 'acrylic' && (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
-          <div className="flex items-center justify-between gap-3"><div><h3 className="font-semibold text-slate-900">Choose a template</h3><p className="mt-1 text-xs text-slate-500">Start with a ready-made acrylic design.</p></div><span className="text-xs font-medium text-slate-400">{ACRYLIC_TEMPLATE_PREVIEWS.length} designs</span></div>
+          <div className="flex items-center justify-between gap-3"><div><h3 className="font-semibold text-slate-900">Choose a template</h3><p className="mt-1 text-xs text-slate-500">Start with a ready-made acrylic design.</p></div><button type="button" onClick={() => previewSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} className="rounded-lg bg-sky-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-sky-600">Preview →</button></div>
           <div className="mt-4 grid grid-cols-3 gap-3">
             {ACRYLIC_TEMPLATE_PREVIEWS.map((url, index) => (
-              <button key={url} type="button" onClick={() => { if (index === 0) setAcrylicTemplate(ACRYLIC_TEMPLATE_IMAGE); }} className={`overflow-hidden rounded-xl border-2 bg-slate-50 transition-all ${index === 0 ? 'border-teal-600 ring-2 ring-teal-100' : 'border-slate-200 hover:border-teal-300'}`}>
+              <button key={url} type="button" onClick={() => setAcrylicTemplateIndex(index)} className={`overflow-hidden rounded-xl border-2 bg-slate-50 text-left transition-all ${index === acrylicTemplateIndex ? 'border-sky-500 ring-2 ring-sky-100' : 'border-slate-200 hover:border-sky-300'}`}>
                 <img src={url} alt={`Acrylic template ${index + 1}`} className="aspect-[4/3] w-full object-cover" />
-                <span className="block px-2 py-2 text-left text-[11px] font-semibold text-slate-600">{index === 0 ? 'School ABC' : `Template ${index + 1}`}</span>
+                <span className="flex items-center justify-between bg-sky-500 px-3 py-2 text-xs font-bold text-white"><span>{ACRYLIC_DESIGNS[index].label}</span><span>Start Design →</span></span>
               </button>
             ))}
           </div>
@@ -246,14 +252,21 @@ export default function StationeryPadCustomizer({
       )}
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <section className={`rounded-2xl border border-slate-200 p-4 shadow-sm sm:p-6 ${material === 'acrylic' ? 'bg-slate-100' : 'bg-amber-50/70'}`}>
+        <section ref={previewSectionRef} className={`rounded-2xl border border-slate-200 p-4 shadow-sm sm:p-6 ${material === 'acrylic' ? 'bg-slate-200' : 'bg-amber-50/70'}`}>
           <div className="mx-auto max-w-[560px] overflow-hidden rounded-2xl shadow-xl" style={{ aspectRatio: previewRatio }}>
             <div className="relative h-full w-full">
-              <img src={previewImage} alt={`${material} pad preview`} className="absolute inset-0 h-full w-full object-cover" />
+              {previewImage ? <img src={previewImage} alt="MDF wooden pad preview" className="absolute inset-0 h-full w-full object-cover" /> : (
+                <div className="absolute inset-0 bg-slate-200">
+                  <div
+                    className={`absolute left-[18%] top-[5%] h-[90%] w-[64%] overflow-hidden rounded-[4%] bg-cover bg-center shadow-xl ${acrylicDesign.background}`}
+                    style={{ backgroundImage: `url(${ACRYLIC_TEMPLATE_PREVIEWS[acrylicTemplateIndex]})` }}
+                  />
+                </div>
+              )}
               <div
                 ref={photoFrameRef}
                 className={`absolute overflow-hidden bg-slate-100/90 ${material === 'acrylic' ? 'rounded-full border-4 border-white/90 shadow-lg' : 'rounded-[3%] border border-white/70 shadow-inner'}`}
-                style={{ left: `${area.left * 100}%`, top: `${area.top * 100}%`, width: `${area.width * 100}%`, height: `${area.height * 100}%`, touchAction: 'none', cursor: image ? 'grab' : 'default' }}
+                style={{ left: `${area.left * 100}%`, top: `${area.top * 100}%`, width: `${area.width * 100}%`, height: material === 'acrylic' ? undefined : `${area.height * 100}%`, aspectRatio: material === 'acrylic' ? '1 / 1' : undefined, touchAction: 'none', cursor: image ? 'grab' : 'default' }}
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMove}
                 onPointerUp={() => setDrag(null)}
@@ -268,7 +281,7 @@ export default function StationeryPadCustomizer({
                   </label>
                 )}
               </div>
-              {material === 'acrylic' && <div className="pointer-events-none absolute left-[21%] top-[64%] w-[58%] text-center text-sm font-semibold text-amber-900">{childName || 'Write Children Name'}</div>}
+              {material === 'acrylic' && <div className="pointer-events-none absolute left-[27%] top-[66%] w-[46%] text-center text-sm font-semibold text-amber-900">{childName || 'Write Children Name'}</div>}
             </div>
           </div>
           <p className="mt-4 text-center text-xs text-slate-500">Drag the photo inside the highlighted area. It cannot move outside the pad shape.</p>
@@ -289,7 +302,9 @@ export default function StationeryPadCustomizer({
               <button type="button" onClick={resetPosition} className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-800"><RotateCcw className="h-4 w-4" /> Reset placement</button>
             </div>
           )}
-          {material === 'acrylic' && <label className="mt-5 block text-xs font-medium text-slate-600">Child name<input value={childName} onChange={(event) => setChildName(event.target.value)} maxLength={24} placeholder="Write Children Name" className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-teal-500" /></label>}
+          {material === 'acrylic' && <label className="mt-5 block text-xs font-medium text-slate-600">Child name
+            <span className="mt-1 flex overflow-hidden rounded-lg border-2 border-sky-500 bg-white focus-within:ring-2 focus-within:ring-sky-100"><span className="flex w-10 items-center justify-center bg-sky-500 text-sm font-bold text-white">T</span><input value={childName} onChange={(event) => setChildName(event.target.value)} maxLength={24} placeholder="Write Children Name" className="min-w-0 flex-1 px-3 py-2.5 text-sm outline-none" /></span>
+          </label>}
           {suggestionsField}
           {error && <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
           <div className="mt-6 border-t border-slate-100 pt-5"><div className="flex items-center justify-between text-sm"><span className="text-slate-500">{material === 'wooden' ? 'MDF Wooden' : 'Acrylic'} Pad · A4</span><span className="text-xl font-bold text-slate-900">₹{product.price}</span></div><div className="mt-4 flex flex-col gap-3 sm:flex-row lg:flex-col"><button type="button" onClick={() => saveCustomization(false)} disabled={!image || savingCart || added} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">{savingCart ? <Loader2 className="h-4 w-4 animate-spin" /> : added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}{savingCart ? 'Saving design…' : added ? 'Added to Cart' : 'Add to Cart'}</button><button type="button" onClick={() => saveCustomization(true)} disabled={!image || savingCart} className="flex-1 rounded-xl bg-teal-600 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50">Buy Now</button></div></div>
